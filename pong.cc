@@ -1,3 +1,4 @@
+#include <cmath>
 #include <unistd.h>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
@@ -5,7 +6,7 @@
 
 void sleep_secs(float s)
 {
-	usleep(s /1000000);
+	usleep(s * 1000000);
 }
 int main()
 {
@@ -26,27 +27,36 @@ int main()
     float baty = 300-50;
     bat.setPosition(batx, baty);
 
+    /*
+    st::Texture bat_texture;
+    if(!texture.create(200, 200)) {
+	    assert(false);
+    }
+    */
+
+
     // Create a graphical text to display
     
     sf::Font font;
     if (!font.loadFromFile("courier.ttf"))
         return EXIT_FAILURE;
     sf::Text text("Hello SFML", font, 50);
-    // Load a music to play
-    /*
+
+
+    
     sf::Music music;
-    if (!music.openFromFile("nice_music.ogg"))
+    if (!music.openFromFile("spin.wav"))
         return EXIT_FAILURE;
-    // Play the music
-    music.play();
-    */
-    // Start the game loop
+    //music.play();
+    
 
     float scale = 0.1;
-    float dx = scale * (rand() % 20 - 10);
+    //float dx = scale * (rand() % 20 - 10);
+    float dx = scale * -7;
     float dy = scale * (rand() % 20 - 10);
 
-    float x=400, y =300;
+    const float x0 = 650;
+    float x=x0, y =300;
     while (window.isOpen())
     {
         // Process events
@@ -82,14 +92,31 @@ int main()
 	// Update the window
 	window.display();
 
-	x += dx;
-	if(x<0) { x = 0 ; dx = - dx; }
-	if(x +50 > 800) { x = 800 -50 ; dx = - dx;}
+	
+	if(x +25 > batx) {
+		// out of bounds	
+		x = x0;
+		dx = - fabs(dx);
+		sprite.setPosition(x, y);
+		window.draw(sprite);
+		window.display();
+		sleep_secs(3);
+	} else 	if(sprite.getGlobalBounds().intersects(bat.getGlobalBounds()))  {
+		dx = -fabs(dx); // ensure it always go to the left
+		dx = dx * 1.05; // make it go faster
+		x = batx -50;
+		music.play(); 
+	} else {
+		x += dx;
+	}
+
+	if(x<0) { x = 0 ; dx = - dx; music.play(); }
+	if(x +50 > 800) { x = 800 -50 ; dx = - dx; music.play();}
 
 	y += dy;
-	if(y<0) { y = 0 ; dy = - dy; }
-	if(y +59 > 600) { y = 600 -59 ; dy = - dy;}
-	sleep_secs(0.01);
+	if(y<0) { y = 0 ; dy = - dy; music.play(); }
+	if(y +59 > 600) { y = 600 -59 ; dy = - dy; music.play();}
+	//sleep_secs(0.01);
 
     }
     return EXIT_SUCCESS;
